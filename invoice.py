@@ -1,9 +1,8 @@
 from shutil import copyfile
 from os import path
 
-from openpyxl.xml.constants import PACKAGE_CHARTS
-from workbook import load_workbook as load_ro_workbook
 from openpyxl import load_workbook
+from workbook import load_workbook as load_ro_workbook
 
 class Invoice():
     #Fulls 40/20 price is 50
@@ -97,8 +96,9 @@ class InvoiceWriter():
         ws['A13'].value = '{}; {}'.format(cont_list, sum_up)
         ws['C26'].value = invoice.get_total()
         banks = {
-            'TB':"თი ბი სი ბანკი", "GB":'საქართველოს ბანკი'
-            }#TODO add more banks
+            'TB':"თი ბი სი ბანკი", "GB":'საქართველოს ბანკი', "LB":'ლიბერთი ბანკი',
+            "VT": "ვითიბი ბანკი"
+            }
         try:
             ws['C30'].value = banks[car['account'][5:7]]
         except KeyError:
@@ -108,3 +108,4 @@ class InvoiceWriter():
         ws['E46'].value = '{}. {}'.format(car['name'].split(' ')[0][0], car['name'].split(' ')[1])
         wb.save()
         wb.close()
+        return out_file_name
