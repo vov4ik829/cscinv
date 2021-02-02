@@ -62,7 +62,8 @@ class InvoiceWriter():
         driver_col = 'B'
         id_col = 'C'
         account_col = 'D'
-        car_id_col = 'E'
+        car_id_col = 'F'
+        bank_col = 'E'
         wb = load_ro_workbook(driver_list)
         # TODO duplicate car_id checking
         ws = wb.worksheets[0]
@@ -73,9 +74,11 @@ class InvoiceWriter():
             driver_id = ws['{}{}'.format(id_col, row)].value
             driver_account = ws['{}{}'.format(account_col, row)].value
             car_id = ws['{}{}'.format(car_id_col, row)].value
+            bank = ws['{}{}'.format(bank_col, row)].value
             cars.update({car_id:{'name':driver_name, 
                                 'id':driver_id, 
-                                'account': driver_account}})
+                                'account': driver_account,
+                                'bank': bank}})
             row+=1
         wb.close()
         self.cars = cars
@@ -130,7 +133,7 @@ def process(source_file:str, dst_folder:str, invoice_date:str):
         except KeyError:
             invoices.update({record[3]:Invoice(record, invoice_date)})
 
-    writer = InvoiceWriter(path.join('input_files','driver_list.xlsx'), 
+    writer = InvoiceWriter(path.join('input_files','BAZA.xlsx'), 
         path.join('input_files','invoice_template.xlsx'))
     for invoice in invoices.values():
         writer.write_invoice(invoice, dst_folder)
