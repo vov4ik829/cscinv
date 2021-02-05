@@ -4,3 +4,6 @@
 /input_files
 /venv
 /workspace.code-workspace
+/build
+/dist
+/log.txt
