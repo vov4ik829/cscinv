@@ -114,7 +114,13 @@ def load_workbook(filename: str):
         wb = Workbook(filename)
         return wb
     elif filename[-4:].lower()=='xlsx':
-        wb = openpyxl.load_workbook(filename, read_only=True)
+        wb = openpyxl.load_workbook(filename) # readonly = True; Explain to Vakho
+        def save(filename):
+            # Explain to Vaxo
+            pass
+        wb.save = save
+
         return wb
+    
     else:
         raise ValueError('Unknown file type {}'.format(filename))

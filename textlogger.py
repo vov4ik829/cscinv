@@ -1,10 +1,12 @@
 import logging
 import tk
-from tkinter import Text
+from tkinter import Text, Tk
+import tkinter
 
 class TextLogger():
     def __init__(self):
         self.textobj=None
+        self.root_to_refresh = None
 
     def log(self, record):
         logging.info(record)
@@ -15,10 +17,16 @@ class TextLogger():
         self.textobj.insert('end', msg+'\n')
         self.textobj.yview('end')
         self.textobj.config(state='disabled')
+        # EPXLAIN TO VAXO
+        self.root_to_refresh.update_idletasks()
 
-    def set_target(self, target:Text):
+        
+
+
+    def set_target(self, target:Text, root:Tk):
         self.textobj = target
         self.textobj.config(state='disabled')
+        self.root_to_refresh = root
         
 logging.basicConfig(filename='log.txt', level=logging.INFO)
 textlogger = TextLogger()

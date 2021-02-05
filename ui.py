@@ -8,7 +8,6 @@ from invoice import process
 
 root = Tk()
 root.title('Generate Invoices')
-
 mainframe = ttk.Frame(root, padding="3 3 12 1")
 mainframe.grid(row=0, column=0, sticky=(N, W, E, S))
 root.columnconfigure(0, weight=1)
@@ -48,6 +47,6 @@ pr_button.grid(row=4, column=2, sticky=(E,W),padx=5,pady=5)
 
 text = Text(mainframe, width=35, height=20)
 text.grid(row=5, column=1, columnspan=3, sticky=(E,W),pady=5,padx=5)
-textlogger.set_target(text)
+textlogger.set_target(text, root)
 
 root.mainloop()

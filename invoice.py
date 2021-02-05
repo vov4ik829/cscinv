@@ -64,6 +64,7 @@ class InvoiceWriter():
         account_col = 'D'
         car_id_col = 'F'
         bank_col = 'E'
+        textlogger.log("Started reading drivers list ")
         wb = load_ro_workbook(driver_list)
         # TODO duplicate car_id checking
         ws = wb.worksheets[0]
@@ -71,9 +72,11 @@ class InvoiceWriter():
         row = 2
         while ws['{}{}'.format(driver_col, row)].value is not None:
             driver_name = ws['{}{}'.format(driver_col, row)].value
+            textlogger.log('Driver name is {}'.format(driver_name))
             driver_id = ws['{}{}'.format(id_col, row)].value
             driver_account = ws['{}{}'.format(account_col, row)].value
             car_id = ws['{}{}'.format(car_id_col, row)].value
+            # Duplicate car check code should go here
             bank = ws['{}{}'.format(bank_col, row)].value
             cars.update({car_id:{'name':driver_name, 
                                 'id':driver_id, 
@@ -81,11 +84,16 @@ class InvoiceWriter():
                                 'bank': bank}})
             row+=1
         wb.close()
+        textlogger.log('Finished reading drivers list')
         self.cars = cars
         self.template = template
         
     def write_invoice(self, invoice:Invoice, dst_folder):
-        car = self.cars[invoice.car_id] # Handle Key Error
+        try:
+            car = self.cars[invoice.car_id] # Handle Key Error
+        except KeyError:
+            textlogger.log('Car {} not found in drivers list. Skipping'.format(invoice.car_id))
+            return
         car_id = invoice.car_id
         driver_name = car['name']
         out_file_name = '_'.join([invoice.date, driver_name, car_id])+'.xlsx'
@@ -108,12 +116,8 @@ class InvoiceWriter():
         print(sum_up)
         ws['A13'].value = '{};\n{}'.format(cont_list, ', '.join(sum_up))
         ws['C26'].value = invoice.get_total()
-        banks = {
-            'TB':"თი ბი სი ბანკი", "BG":'საქართველოს ბანკი', "LB":'ლიბერთი ბანკი',
-            "VT": "ვითიბი ბანკი"
-            }
         try:
-            ws['C30'].value = banks[car['account'][5:7]]
+            ws['C30'].value = car['bank']
         except KeyError:
             ws['C30'].value = car['account'][5:7]
 
@@ -125,7 +129,12 @@ class InvoiceWriter():
         return out_file_name
 
 def process(source_file:str, dst_folder:str, invoice_date:str):
-    records = customs_report(source_file)
+    # TODO Add exception logging
+    try:
+        records = customs_report(source_file)
+    except:
+        textlogger.log('Problem with report. Please check {}'.format(customs_report))
+        return
     invoices = {}
     for record in records:
         try:
@@ -133,8 +142,18 @@ def process(source_file:str, dst_folder:str, invoice_date:str):
         except KeyError:
             invoices.update({record[3]:Invoice(record, invoice_date)})
 
-    writer = InvoiceWriter(path.join('input_files','BAZA.xlsx'), 
-        path.join('input_files','invoice_template.xlsx'))
+    try:
+        writer = InvoiceWriter(path.join('input_files','BAZA.xlsx'), 
+            path.join('input_files','invoice_template.xlsx'))
+    except:
+        textlogger.log('Problem with drivers list. Please check BAZA.xlsx')
+        return
+    count=0
+    fault_invoices=[]
     for invoice in invoices.values():
-        writer.write_invoice(invoice, dst_folder)
-    textlogger.log('Completed. {} invoices processed'.format(len(invoices)))
+        if writer.write_invoice(invoice, dst_folder):
+           count+=1
+        else:
+            fault_invoices.append(invoice.car_id)
+    textlogger.log('Completed. {} invoices written'.format(count))
+    textlogger.log('Could not write invoices for cars: \n{}'.format(' '.join(fault_invoices)))
