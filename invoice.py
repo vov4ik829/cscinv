@@ -72,7 +72,6 @@ class InvoiceWriter():
         row = 2
         while ws['{}{}'.format(driver_col, row)].value is not None:
             driver_name = ws['{}{}'.format(driver_col, row)].value
-            textlogger.log('Driver name is {}'.format(driver_name))
             driver_id = ws['{}{}'.format(id_col, row)].value
             driver_account = ws['{}{}'.format(account_col, row)].value
             car_id = ws['{}{}'.format(car_id_col, row)].value
@@ -133,15 +132,18 @@ def process(source_file:str, dst_folder:str, invoice_date:str):
     try:
         records = customs_report(source_file)
     except:
-        textlogger.log('Problem with report. Please check {}'.format(customs_report))
+        textlogger.log('Problem with report. Please check {}'.format(source_file))
         return
     invoices = {}
-    for record in records:
-        try:
-            invoices[record[3]].add_record(record)
-        except KeyError:
-            invoices.update({record[3]:Invoice(record, invoice_date)})
-
+    try:
+        for record in records:
+            try:
+                invoices[record[3]].add_record(record)
+            except KeyError:
+                invoices.update({record[3]:Invoice(record, invoice_date)})
+    except:
+        textlogger.log('Problem with report. Please check {}'.format(source_file))
+        return
     try:
         writer = InvoiceWriter(path.join('input_files','BAZA.xlsx'), 
             path.join('input_files','invoice_template.xlsx'))
@@ -156,4 +158,5 @@ def process(source_file:str, dst_folder:str, invoice_date:str):
         else:
             fault_invoices.append(invoice.car_id)
     textlogger.log('Completed. {} invoices written'.format(count))
-    textlogger.log('Could not write invoices for cars: \n{}'.format(' '.join(fault_invoices)))
+    if fault_invoices != []:
+        textlogger.log('Could not write invoices for cars: \n{}'.format(' '.join(fault_invoices)))

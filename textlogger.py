@@ -20,14 +20,14 @@ class TextLogger():
         # EPXLAIN TO VAXO
         self.root_to_refresh.update_idletasks()
 
-        
-
 
     def set_target(self, target:Text, root:Tk):
         self.textobj = target
         self.textobj.config(state='disabled')
         self.root_to_refresh = root
-        
-logging.basicConfig(filename='log.txt', level=logging.INFO)
-textlogger = TextLogger()
 
+logger = logging.getLogger()
+logger.addHandler(logging.FileHandler(filename='log.txt', encoding='utf-8'))
+
+logging.basicConfig(level=logging.INFO, force=True)
+textlogger = TextLogger()
